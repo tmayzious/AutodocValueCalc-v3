@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Highspot AutoDocs Value Calculator</title>
+    <title>Highspot AutoDocs ROI Calculator</title>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -18,8 +18,8 @@
         const AutoDocsCalculator = () => {
             // --- State / Inputs ---
             const [repCount, setRepCount] = useState(100);
-            const [manualMinutes, setManualMinutes] = useState(240); // 4 hours in mins
-            const [autoMinutes, setAutoMinutes] = useState(30);      // 30 mins
+            const [manualMinutes, setManualMinutes] = useState(240); 
+            const [autoMinutes, setAutoMinutes] = useState(30);      
             const [decksPerYear, setDecksPerYear] = useState(24); 
             const [repSalary, setRepSalary] = useState(125000); 
 
@@ -31,22 +31,19 @@
                 return repSalary / WORKING_HOURS_YEAR;
             }, [repSalary]);
 
-            // Convert minutes to hours for the financial calculations
             const manualHours = useMemo(() => manualMinutes / 60, [manualMinutes]);
             const autoHours = useMemo(() => autoMinutes / 60, [autoMinutes]);
 
-            const manualAnnualCost = useMemo(() => {
-                return repCount * decksPerYear * manualHours * hourlyRate;
-            }, [repCount, decksPerYear, manualHours, hourlyRate]);
+            const annualSavings = useMemo(() => {
+                const manualCost = repCount * decksPerYear * manualHours * hourlyRate;
+                const autoCost = repCount * decksPerYear * autoHours * hourlyRate;
+                return manualCost - autoCost;
+            }, [repCount, decksPerYear, manualHours, autoHours, hourlyRate]);
 
-            const autoDocsAnnualCost = useMemo(() => {
-                return repCount * decksPerYear * autoHours * hourlyRate;
-            }, [repCount, decksPerYear, autoHours, hourlyRate]);
+            const hoursReclaimed = useMemo(() => {
+                return (manualHours - autoHours) * decksPerYear * repCount;
+            }, [manualHours, autoHours, decksPerYear, repCount]);
 
-            const annualSavings = manualAnnualCost - autoDocsAnnualCost;
-            const hoursReclaimed = (manualHours - autoHours) * decksPerYear * repCount;
-
-            // Helper to format currency
             const formatter = new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: 'USD',
@@ -54,45 +51,77 @@
             });
 
             return (
-                <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
-                    <div class="bg-blue-600 p-6">
-                        <h1 class="text-2xl font-bold text-white uppercase tracking-wide">Highspot AutoDocs ROI Calculator</h1>
-                        <p class="text-blue-100">Quantify the value of automated sales presentations</p>
+                <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
+                    <div className="bg-blue-600 p-6">
+                        <h1 className="text-2xl font-bold text-white uppercase tracking-wide">Highspot AutoDocs ROI Calculator</h1>
+                        <p className="text-blue-100">Quantify the value of automated sales presentations</p>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
-                        {/* Left Column: Inputs */}
-                        <div class="space-y-6">
-                            <h2 class="text-lg font-semibold text-gray-700 border-b pb-2">Operational Inputs</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
+                        <div className="space-y-6">
+                            <h2 className="text-lg font-semibold text-gray-700 border-b pb-2">Operational Inputs</h2>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Number of Reps: <span class="text-blue-600 font-bold">{repCount}</span></label>
-                                <input type="range" min="1" max="500" value={repCount} onChange={(e) => setRepCount(Number(e.target.value))} class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Number of Reps: <span className="text-blue-600 font-bold">{repCount}</span></label>
+                                <input type="range" min="1" max="500" value={repCount} onChange={(e) => setRepCount(Number(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Manual Build Time (Minutes): <span class="text-blue-600 font-bold">{manualMinutes}m</span></label>
-                                <input type="range" min="15" max="600" step="15" value={manualMinutes} onChange={(e) => setManualMinutes(Number(e.target.value))} class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
-                                <p class="text-[10px] text-gray-400 mt-1 italic">Equivalent to {(manualMinutes / 60).toFixed(1)} hours</p>
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Manual Build Time (Minutes): <span className="text-blue-600 font-bold">{manualMinutes}m</span></label>
+                                <input type="range" min="15" max="600" step="15" value={manualMinutes} onChange={(e) => setManualMinutes(Number(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+                                <p className="text-[10px] text-gray-400 mt-1 italic">Equivalent to {(manualMinutes / 60).toFixed(1)} hours</p>
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">AutoDocs Build Time (Minutes): <span class="text-blue-600 font-bold">{autoMinutes}m</span></label>
-                                <input type="range" min="1" max="120" step="1" value={autoMinutes} onChange={(e) => setAutoMinutes(Number(e.target.value))} class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+                                <label className="block text-sm font-medium text-gray-600 mb-1 text-blue-700 italic">AutoDocs Build Time (Minutes): <span className="font-bold">{autoMinutes}m</span></label>
+                                <input type="range" min="1" max="120" step="1" value={autoMinutes} onChange={(e) => setAutoMinutes(Number(e.target.value))} className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-700" />
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Decks built per Rep/Year: <span class="text-blue-600 font-bold">{decksPerYear}</span></label>
-                                <input type="range" min="1" max="100" value={decksPerYear} onChange={(e) => setDecksPerYear(Number(e.target.value))} class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Decks built per Rep/Year: <span className="text-blue-600 font-bold">{decksPerYear}</span></label>
+                                <input type="range" min="1" max="100" value={decksPerYear} onChange={(e) => setDecksPerYear(Number(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Avg. Rep Salary (OTE): <span class="text-blue-600 font-bold">{formatter.format(repSalary)}</span></label>
-                                <input type="range" min="50000" max="300000" step="5000" value={repSalary} onChange={(e) => setRepSalary(Number(e.target.value))} class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Avg. Rep Salary (OTE): <span className="text-blue-600 font-bold">{formatter.format(repSalary)}</span></label>
+                                <input type="range" min="50000" max="300000" step="5000" value={repSalary} onChange={(e) => setRepSalary(Number(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
                             </div>
                         </div>
 
-                        {/* Right Column: Results */}
-                        <div class="flex flex-col justify-center space-y-6 bg-blue-50 p-6 rounded-xl border border-blue-100">
-                            <div class="text-center">
-                                <h2 class="text-sm font-bold text-blue-
+                        <div className="flex flex-col justify-center space-y-6 bg-blue-50 p-6 rounded-xl border border-blue-100">
+                            <div className="text-center">
+                                <h2 className="text-sm font-bold text-blue-800 uppercase tracking-widest mb-2">Total Potential Savings</h2>
+                                <div className="text-5xl font-extrabold text-blue-900 mb-2">
+                                    {formatter.format(annualSavings)}
+                                </div>
+                                <p className="text-blue-700 text-sm italic">per year across the organization</p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 pt-6 border-t border-blue-200">
+                                <div className="text-center">
+                                    <p className="text-xs text-blue-600 uppercase font-bold">Hours Reclaimed</p>
+                                    <p className="text-xl font-bold text-blue-900">{Math.round(hoursReclaimed).toLocaleString()}</p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-xs text-blue-600 uppercase font-bold">Cost per Hour</p>
+                                    <p className="text-xl font-bold text-blue-900">${hourlyRate.toFixed(2)}</p>
+                                </div>
+                            </div>
+
+                            <div className="mt-4 p-4 bg-white rounded-lg shadow-sm text-center">
+                                <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">The Impact</h4>
+                                <p className="text-sm text-gray-600 leading-relaxed">
+                                    By reducing creation time from <strong>{manualMinutes}m</strong> to <strong>{autoMinutes}m</strong>, you reclaim <strong>{((manualMinutes - autoMinutes) / 60 * decksPerYear).toFixed(1)} hours</strong> per rep, per year.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<AutoDocsCalculator />);
+    </script>
+</body>
+</html>
